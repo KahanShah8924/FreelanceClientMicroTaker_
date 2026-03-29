@@ -4,22 +4,22 @@ import {
   TextField,
   Button,
   Typography,
-  makeStyles,
   Paper,
   MenuItem,
   Input,
-} from "@material-ui/core";
+} from "@mui/material";
+import { makeStyles } from "@mui/styles";
 import axios from "axios";
-import { Redirect } from "react-router-dom";
-import ChipInput from "material-ui-chip-input";
-import DescriptionIcon from "@material-ui/icons/Description";
-import FaceIcon from "@material-ui/icons/Face";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/material.css";
+import { Navigate } from "react-router-dom";
+import DescriptionIcon from "@mui/icons-material/Description";
+import FaceIcon from "@mui/icons-material/Face";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
 import PasswordInput from "../lib/PasswordInput";
 import EmailInput from "../lib/EmailInput";
 import FileUploadInput from "../lib/FileUploadInput";
+import ChipsInput from "../lib/ChipsInput";
 import { SetPopupContext } from "../App";
 
 import apiList from "../lib/apiList";
@@ -271,7 +271,7 @@ const Login = (props) => {
     if (phone !== "") {
       updatedDetails = {
         ...signupDetails,
-        contactNumber: `+${phone}`,
+        contactNumber: phone,
       };
     } else {
       updatedDetails = {
@@ -321,7 +321,7 @@ const Login = (props) => {
   };
 
   return loggedin ? (
-    <Redirect to="/" />
+    <Navigate to="/" replace />
   ) : (
     <Paper elevation={3} className={classes.body}>
       <Grid container direction="column" spacing={4} alignItems="center">
@@ -398,11 +398,11 @@ const Login = (props) => {
               setEducation={setEducation}
             />
             <Grid item>
-              <ChipInput
+              <ChipsInput
                 className={classes.inputBox}
                 label="Skills"
-                variant="outlined"
                 helperText="Press enter to add skills"
+                value={signupDetails.skills}
                 onChange={(chips) =>
                   setSignupDetails({ ...signupDetails, skills: chips })
                 }
@@ -466,9 +466,10 @@ const Login = (props) => {
             </Grid>
             <Grid item>
               <PhoneInput
-                country={"in"}
+                defaultCountry="IN"
                 value={phone}
-                onChange={(phone) => setPhone(phone)}
+                onChange={(value) => setPhone(value || "")}
+                className="w-full"
               />
             </Grid>
           </>

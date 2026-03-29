@@ -5,7 +5,6 @@ import {
   Grid,
   IconButton,
   InputAdornment,
-  makeStyles,
   Paper,
   TextField,
   Typography,
@@ -16,13 +15,14 @@ import {
   MenuItem,
   Checkbox,
   Avatar,
-} from "@material-ui/core";
+  Rating,
+} from "@mui/material";
+import { makeStyles } from "@mui/styles";
 import { useParams } from "react-router-dom";
-import Rating from "@material-ui/lab/Rating";
 import axios from "axios";
-import FilterListIcon from "@material-ui/icons/FilterList";
-import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
-import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 
 import { SetPopupContext } from "../../App";
 
@@ -71,7 +71,7 @@ const FilterPopup = (props) => {
         }}
       >
         <Grid container direction="column" alignItems="center" spacing={3}>
-          <Grid container item alignItems="center">
+          {/* <Grid container item alignItems="center">
             <Grid item xs={3}>
               Application Status
             </Grid>
@@ -79,7 +79,7 @@ const FilterPopup = (props) => {
               container
               item
               xs={9}
-              justify="space-around"
+              justifyContent="space-around"
               // alignItems="center"
             >
               <Grid item>
@@ -143,7 +143,7 @@ const FilterPopup = (props) => {
                 />
               </Grid>
             </Grid>
-          </Grid>
+          </Grid> */}
           <Grid container item alignItems="center">
             <Grid item xs={3}>
               Sort
@@ -152,8 +152,8 @@ const FilterPopup = (props) => {
               <Grid
                 item
                 container
-                xs={4}
-                justify="space-around"
+                xs={6}
+                justifyContent="space-around"
                 alignItems="center"
                 style={{ border: "1px solid #D1D1D1", borderRadius: "5px" }}
               >
@@ -208,52 +208,52 @@ const FilterPopup = (props) => {
               <Grid
                 item
                 container
-                xs={4}
-                justify="space-around"
+                xs={6}
+                justifyContent="space-around"
                 alignItems="center"
                 style={{ border: "1px solid #D1D1D1", borderRadius: "5px" }}
               >
                 <Grid item>
                   <Checkbox
-                    name="dateOfApplication"
-                    checked={searchOptions.sort.dateOfApplication.status}
+                    name="jobTitle"
+                    checked={searchOptions.sort["job.title"].status}
                     onChange={(event) =>
                       setSearchOptions({
                         ...searchOptions,
                         sort: {
                           ...searchOptions.sort,
-                          dateOfApplication: {
-                            ...searchOptions.sort.dateOfApplication,
+                          "job.title": {
+                            ...searchOptions.sort["job.title"],
                             status: event.target.checked,
                           },
                         },
                       })
                     }
-                    id="dateOfApplication"
+                    id="jobTitle"
                   />
                 </Grid>
                 <Grid item>
-                  <label for="dateOfApplication">
-                    <Typography>Date of Application</Typography>
+                  <label for="jobTitle">
+                    <Typography>Job Title</Typography>
                   </label>
                 </Grid>
                 <Grid item>
                   <IconButton
-                    disabled={!searchOptions.sort.dateOfApplication.status}
+                    disabled={!searchOptions.sort["job.title"].status}
                     onClick={() => {
                       setSearchOptions({
                         ...searchOptions,
                         sort: {
                           ...searchOptions.sort,
-                          dateOfApplication: {
-                            ...searchOptions.sort.dateOfApplication,
-                            desc: !searchOptions.sort.dateOfApplication.desc,
+                          "job.title": {
+                            ...searchOptions.sort["job.title"],
+                            desc: !searchOptions.sort["job.title"].desc,
                           },
                         },
                       });
                     }}
                   >
-                    {searchOptions.sort.dateOfApplication.desc ? (
+                    {searchOptions.sort["job.title"].desc ? (
                       <ArrowDownwardIcon />
                     ) : (
                       <ArrowUpwardIcon />
@@ -264,8 +264,64 @@ const FilterPopup = (props) => {
               <Grid
                 item
                 container
-                xs={4}
-                justify="space-around"
+                xs={6}
+                justifyContent="space-around"
+                alignItems="center"
+                style={{ border: "1px solid #D1D1D1", borderRadius: "5px" }}
+              >
+                <Grid item>
+                  <Checkbox
+                    name="dateOfJoining"
+                    checked={searchOptions.sort.dateOfJoining.status}
+                    onChange={(event) =>
+                      setSearchOptions({
+                        ...searchOptions,
+                        sort: {
+                          ...searchOptions.sort,
+                          dateOfJoining: {
+                            ...searchOptions.sort.dateOfJoining,
+                            status: event.target.checked,
+                          },
+                        },
+                      })
+                    }
+                    id="dateOfJoining"
+                  />
+                </Grid>
+                <Grid item>
+                  <label for="dateOfJoining">
+                    <Typography>Date of Joining</Typography>
+                  </label>
+                </Grid>
+                <Grid item>
+                  <IconButton
+                    disabled={!searchOptions.sort.dateOfJoining.status}
+                    onClick={() => {
+                      setSearchOptions({
+                        ...searchOptions,
+                        sort: {
+                          ...searchOptions.sort,
+                          dateOfJoining: {
+                            ...searchOptions.sort.dateOfJoining,
+                            desc: !searchOptions.sort.dateOfJoining.desc,
+                          },
+                        },
+                      });
+                    }}
+                  >
+                    {searchOptions.sort.dateOfJoining.desc ? (
+                      <ArrowDownwardIcon />
+                    ) : (
+                      <ArrowUpwardIcon />
+                    )}
+                  </IconButton>
+                </Grid>
+              </Grid>
+              <Grid
+                item
+                container
+                xs={6}
+                justifyContent="space-around"
                 alignItems="center"
                 style={{ border: "1px solid #D1D1D1", borderRadius: "5px" }}
               >
@@ -342,11 +398,53 @@ const ApplicationTile = (props) => {
   const { application, getData } = props;
   const setPopup = useContext(SetPopupContext);
   const [open, setOpen] = useState(false);
+  const [openEndJob, setOpenEndJob] = useState(false);
+  const [rating, setRating] = useState(application.jobApplicant.rating);
 
   const appliedOn = new Date(application.dateOfApplication);
 
+  const changeRating = () => {
+    axios
+      .put(
+        apiList.rating,
+        { rating: rating, applicantId: application.jobApplicant.userId },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+      .then((response) => {
+        console.log(response.data);
+        setPopup({
+          open: true,
+          severity: "success",
+          message: "Rating updated successfully",
+        });
+        // fetchRating();
+        getData();
+        setOpen(false);
+      })
+      .catch((err) => {
+        // console.log(err.response);
+        console.log(err);
+        setPopup({
+          open: true,
+          severity: "error",
+          message: err.response.data.message,
+        });
+        // fetchRating();
+        getData();
+        setOpen(false);
+      });
+  };
+
   const handleClose = () => {
     setOpen(false);
+  };
+
+  const handleCloseEndJob = () => {
+    setOpenEndJob(false);
   };
 
   const colorSet = {
@@ -361,6 +459,7 @@ const ApplicationTile = (props) => {
 
   const getResume = () => {
     if (
+      application.jobApplicant &&
       application.jobApplicant.resume &&
       application.jobApplicant.resume !== ""
     ) {
@@ -410,6 +509,7 @@ const ApplicationTile = (props) => {
           severity: "success",
           message: response.data.message,
         });
+        handleCloseEndJob();
         getData();
       })
       .catch((err) => {
@@ -419,126 +519,8 @@ const ApplicationTile = (props) => {
           message: err.response.data.message,
         });
         console.log(err.response);
+        handleCloseEndJob();
       });
-  };
-
-  const buttonSet = {
-    applied: (
-      <>
-        <Grid item xs>
-          <Button
-            className={classes.statusBlock}
-            style={{
-              background: colorSet["shortlisted"],
-              color: "#ffffff",
-            }}
-            onClick={() => updateStatus("shortlisted")}
-          >
-            Shortlist
-          </Button>
-        </Grid>
-        <Grid item xs>
-          <Button
-            className={classes.statusBlock}
-            style={{
-              background: colorSet["rejected"],
-              color: "#ffffff",
-            }}
-            onClick={() => updateStatus("rejected")}
-          >
-            Reject
-          </Button>
-        </Grid>
-      </>
-    ),
-    shortlisted: (
-      <>
-        <Grid item xs>
-          <Button
-            className={classes.statusBlock}
-            style={{
-              background: colorSet["accepted"],
-              color: "#ffffff",
-            }}
-            onClick={() => updateStatus("accepted")}
-          >
-            Accept
-          </Button>
-        </Grid>
-        <Grid item xs>
-          <Button
-            className={classes.statusBlock}
-            style={{
-              background: colorSet["rejected"],
-              color: "#ffffff",
-            }}
-            onClick={() => updateStatus("rejected")}
-          >
-            Reject
-          </Button>
-        </Grid>
-      </>
-    ),
-    rejected: (
-      <>
-        <Grid item xs>
-          <Paper
-            className={classes.statusBlock}
-            style={{
-              background: colorSet["rejected"],
-              color: "#ffffff",
-            }}
-          >
-            Rejected
-          </Paper>
-        </Grid>
-      </>
-    ),
-    accepted: (
-      <>
-        <Grid item xs>
-          <Paper
-            className={classes.statusBlock}
-            style={{
-              background: colorSet["accepted"],
-              color: "#ffffff",
-            }}
-          >
-            Accepted
-          </Paper>
-        </Grid>
-      </>
-    ),
-    cancelled: (
-      <>
-        <Grid item xs>
-          <Paper
-            className={classes.statusBlock}
-            style={{
-              background: colorSet["cancelled"],
-              color: "#ffffff",
-            }}
-          >
-            Cancelled
-          </Paper>
-        </Grid>
-      </>
-    ),
-    finished: (
-      <>
-        <Grid item xs>
-          <Paper
-            className={classes.statusBlock}
-            style={{
-              background: colorSet["finished"],
-              color: "#ffffff",
-            }}
-          >
-            Finished
-          </Paper>
-        </Grid>
-      </>
-    ),
   };
 
   return (
@@ -554,43 +536,35 @@ const ApplicationTile = (props) => {
           }}
         >
           <Avatar
-            src={`${server}${application.jobApplicant.profile}`}
+            src={application.jobApplicant ? `${server}${application.jobApplicant.profile}` : ""}
             className={classes.avatar}
           />
         </Grid>
         <Grid container item xs={7} spacing={1} direction="column">
           <Grid item>
             <Typography variant="h5">
-              {application.jobApplicant.name}
+              {application.jobApplicant ? application.jobApplicant.name : "Unknown Applicant"}
             </Typography>
           </Grid>
           <Grid item>
             <Rating
               value={
-                application.jobApplicant.rating !== -1
-                  ? application.jobApplicant.rating
+                application.jobApplicant?.rating !== -1
+                  ? application.jobApplicant?.rating
                   : null
               }
               readOnly
             />
           </Grid>
+          <Grid item>Job Title: {application.job ? application.job.title : "Unknown Job"}</Grid>
+          <Grid item>Role: {application.job ? application.job.jobType : "Unknown Role"}</Grid>
           <Grid item>Applied On: {appliedOn.toLocaleDateString()}</Grid>
           <Grid item>
-            Education:{" "}
-            {application.jobApplicant.education
-              .map((edu) => {
-                return `${edu.institutionName} (${edu.startYear}-${
-                  edu.endYear ? edu.endYear : "Ongoing"
-                })`;
-              })
-              .join(", ")}
+            SOP: {application.sop !== "" && application.sop != null ? application.sop : "Not Submitted"}
           </Grid>
           <Grid item>
-            SOP: {application.sop !== "" ? application.sop : "Not Submitted"}
-          </Grid>
-          <Grid item>
-            {application.jobApplicant.skills.map((skill) => (
-              <Chip label={skill} style={{ marginRight: "2px" }} />
+            {application.jobApplicant?.skills?.map((skill, index) => (
+              <Chip key={index} label={skill} style={{ marginRight: "2px" }} />
             ))}
           </Grid>
         </Grid>
@@ -606,7 +580,32 @@ const ApplicationTile = (props) => {
             </Button>
           </Grid>
           <Grid item container xs>
-            {buttonSet[application.status]}
+            {/* {buttonSet[application.status]} */}
+            <Button
+              variant="contained"
+              color="primary"
+              className={classes.statusBlock}
+              style={{
+                background: "#09BC8A",
+              }}
+              onClick={() => {
+                setOpenEndJob(true);
+              }}
+            >
+              End Job
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              color="primary"
+              className={classes.statusBlock}
+              onClick={() => {
+                setOpen(true);
+              }}
+            >
+              Rate Applicant
+            </Button>
           </Grid>
         </Grid>
       </Grid>
@@ -622,37 +621,88 @@ const ApplicationTile = (props) => {
             alignItems: "center",
           }}
         >
+          <Rating
+            name="simple-controlled"
+            style={{ marginBottom: "30px" }}
+            value={rating === -1 ? null : rating}
+            onChange={(event, newValue) => {
+              setRating(newValue);
+            }}
+          />
           <Button
             variant="contained"
             color="primary"
             style={{ padding: "10px 50px" }}
-            // onClick={() => changeRating()}
+            onClick={() => changeRating()}
           >
             Submit
           </Button>
+        </Paper>
+      </Modal>
+      <Modal
+        open={openEndJob}
+        onClose={handleCloseEndJob}
+        className={classes.popupDialog}
+      >
+        <Paper
+          style={{
+            padding: "20px",
+            outline: "none",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            minWidth: "30%",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="h4" style={{ marginBottom: "10px" }}>
+            Are you sure?
+          </Typography>
+          <Grid container justifyContent="center" spacing={5}>
+            <Grid item>
+              <Button
+                variant="contained"
+                color="secondary"
+                style={{ padding: "10px 50px" }}
+                onClick={() => {
+                  updateStatus("finished");
+                }}
+              >
+                Yes
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button
+                variant="contained"
+                color="primary"
+                style={{ padding: "10px 50px" }}
+                onClick={() => handleCloseEndJob()}
+              >
+                Cancel
+              </Button>
+            </Grid>
+          </Grid>
         </Paper>
       </Modal>
     </Paper>
   );
 };
 
-const JobApplications = (props) => {
+const AcceptedApplicants = (props) => {
   const setPopup = useContext(SetPopupContext);
   const [applications, setApplications] = useState([]);
-  const { jobId } = useParams();
   const [filterOpen, setFilterOpen] = useState(false);
   const [searchOptions, setSearchOptions] = useState({
-    status: {
-      all: false,
-      applied: false,
-      shortlisted: false,
-    },
     sort: {
       "jobApplicant.name": {
         status: false,
         desc: false,
       },
-      dateOfApplication: {
+      "job.title": {
+        status: false,
+        desc: false,
+      },
+      dateOfJoining: {
         status: true,
         desc: true,
       },
@@ -669,16 +719,7 @@ const JobApplications = (props) => {
 
   const getData = () => {
     let searchParams = [];
-
-    if (searchOptions.status.rejected) {
-      searchParams = [...searchParams, `status=rejected`];
-    }
-    if (searchOptions.status.applied) {
-      searchParams = [...searchParams, `status=applied`];
-    }
-    if (searchOptions.status.shortlisted) {
-      searchParams = [...searchParams, `status=shortlisted`];
-    }
+    searchParams = [...searchParams, `status=accepted`];
 
     let asc = [],
       desc = [];
@@ -693,12 +734,13 @@ const JobApplications = (props) => {
         }
       }
     });
+
     searchParams = [...searchParams, ...asc, ...desc];
     const queryString = searchParams.join("&");
     console.log(queryString);
-    let address = `${apiList.applicants}?jobId=${jobId}`;
+    let address = `${apiList.applicants}`;
     if (queryString !== "") {
-      address = `${address}&${queryString}`;
+      address = `${address}?${queryString}`;
     }
 
     console.log(address);
@@ -735,7 +777,7 @@ const JobApplications = (props) => {
         style={{ padding: "30px", minHeight: "93vh" }}
       >
         <Grid item>
-          <Typography variant="h2">Applications</Typography>
+          <Typography variant="h2">Employees</Typography>
         </Grid>
         <Grid item>
           <IconButton onClick={() => setFilterOpen(true)}>
@@ -749,7 +791,7 @@ const JobApplications = (props) => {
           direction="column"
           style={{ width: "100%" }}
           alignItems="stretch"
-          justify="center"
+          justifyContent="center"
         >
           {applications.length > 0 ? (
             applications.map((obj) => (
@@ -779,4 +821,4 @@ const JobApplications = (props) => {
   );
 };
 
-export default JobApplications;
+export default AcceptedApplicants;

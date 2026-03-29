@@ -5,12 +5,12 @@ import {
   Typography,
   Modal,
   Paper,
-  makeStyles,
   TextField,
   MenuItem,
-} from "@material-ui/core";
+} from "@mui/material";
+import { makeStyles } from "@mui/styles";
 import axios from "axios";
-import ChipInput from "material-ui-chip-input";
+import ChipsInput from "../../lib/ChipsInput";
 
 import { SetPopupContext } from "../../App";
 
@@ -102,7 +102,7 @@ const CreateJobs = (props) => {
         <Grid item>
           <Typography variant="h2">Add Job</Typography>
         </Grid>
-        <Grid item container xs direction="column" justify="center">
+        <Grid item container xs direction="column" justifyContent="center">
           <Grid item>
             <Paper
               style={{
@@ -132,26 +132,17 @@ const CreateJobs = (props) => {
                   />
                 </Grid>
                 <Grid item>
-                  <ChipInput
+                  <ChipsInput
                     className={classes.inputBox}
                     label="Skills"
-                    variant="outlined"
                     helperText="Press enter to add skills"
                     value={jobDetails.skillsets}
-                    onAdd={(chip) =>
+                    onChange={(chips) =>
                       setJobDetails({
                         ...jobDetails,
-                        skillsets: [...jobDetails.skillsets, chip],
+                        skillsets: chips,
                       })
                     }
-                    onDelete={(chip, index) => {
-                      let skillsets = jobDetails.skillsets;
-                      skillsets.splice(index, 1);
-                      setJobDetails({
-                        ...jobDetails,
-                        skillsets: skillsets,
-                      });
-                    }}
                     fullWidth
                   />
                 </Grid>

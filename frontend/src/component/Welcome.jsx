@@ -1,4 +1,4 @@
-import { Grid, Typography } from "@material-ui/core";
+import { Grid, Typography } from "@mui/material";
 
 const Welcome = (props) => {
   return (
@@ -7,11 +7,11 @@ const Welcome = (props) => {
       item
       direction="column"
       alignItems="center"
-      justify="center"
+      justifyContent="center"
       style={{ padding: "30px", minHeight: "93vh" }}
     >
       <Grid item>
-        <Typography variant="h2">Welcome to Job Portal</Typography>
+        <Typography variant="h2">Welcome to FCM Platform</Typography>
       </Grid>
     </Grid>
   );
@@ -24,7 +24,7 @@ export const ErrorPage = (props) => {
       item
       direction="column"
       alignItems="center"
-      justify="center"
+      justifyContent="center"
       style={{ padding: "30px", minHeight: "93vh" }}
     >
       <Grid item>

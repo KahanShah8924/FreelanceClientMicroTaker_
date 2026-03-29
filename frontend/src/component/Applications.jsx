@@ -5,7 +5,6 @@ import {
   Grid,
   IconButton,
   InputAdornment,
-  makeStyles,
   Paper,
   TextField,
   Typography,
@@ -15,8 +14,9 @@ import {
   FormGroup,
   MenuItem,
   Checkbox,
-} from "@material-ui/core";
-import Rating from "@material-ui/lab/Rating";
+  Rating,
+} from "@mui/material";
+import { makeStyles } from "@mui/styles";
 import axios from "axios";
 
 import { SetPopupContext } from "../App";
@@ -134,20 +134,20 @@ const ApplicationTile = (props) => {
       <Grid container>
         <Grid container item xs={9} spacing={1} direction="column">
           <Grid item>
-            <Typography variant="h5">{application.job.title}</Typography>
+            <Typography variant="h5">{application.job ? application.job.title : "Unknown Job"}</Typography>
           </Grid>
-          <Grid item>Posted By: {application.recruiter.name}</Grid>
-          <Grid item>Role : {application.job.jobType}</Grid>
-          <Grid item>Salary : &#8377; {application.job.salary} per month</Grid>
+          <Grid item>Posted By: {application.recruiter ? application.recruiter.name : "Unknown Recruiter"}</Grid>
+          <Grid item>Role : {application.job ? application.job.jobType : "Unknown Role"}</Grid>
+          <Grid item>Salary : &#8377; {application.job ? application.job.salary : "0"} per month</Grid>
           <Grid item>
             Duration :{" "}
-            {application.job.duration !== 0
-              ? `${application.job.duration} month`
+            {application.job?.duration !== 0
+              ? `${application.job?.duration} month`
               : `Flexible`}
           </Grid>
           <Grid item>
-            {application.job.skillsets.map((skill) => (
-              <Chip label={skill} style={{ marginRight: "2px" }} />
+            {application.job?.skillsets?.map((skill, index) => (
+              <Chip key={index} label={skill} style={{ marginRight: "2px" }} />
             ))}
           </Grid>
           <Grid item>Applied On: {appliedOn.toLocaleDateString()}</Grid>
@@ -268,7 +268,7 @@ const Applications = (props) => {
         direction="column"
         style={{ width: "100%" }}
         alignItems="stretch"
-        justify="center"
+        justifyContent="center"
       >
         {applications.length > 0 ? (
           applications.map((obj) => (

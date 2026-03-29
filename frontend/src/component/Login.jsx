@@ -1,14 +1,6 @@
 import { useContext, useState } from "react";
-import {
-  Grid,
-  TextField,
-  Button,
-  Typography,
-  makeStyles,
-  Paper,
-} from "@material-ui/core";
 import axios from "axios";
-import { Redirect } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 import PasswordInput from "../lib/PasswordInput";
 import EmailInput from "../lib/EmailInput";
@@ -17,20 +9,7 @@ import { SetPopupContext } from "../App";
 import apiList from "../lib/apiList";
 import isAuth from "../lib/isAuth";
 
-const useStyles = makeStyles((theme) => ({
-  body: {
-    padding: "60px 60px",
-  },
-  inputBox: {
-    width: "300px",
-  },
-  submitButton: {
-    width: "300px",
-  },
-}));
-
 const Login = (props) => {
-  const classes = useStyles();
   const setPopup = useContext(SetPopupContext);
 
   const [loggedin, setLoggedin] = useState(isAuth());
@@ -104,45 +83,54 @@ const Login = (props) => {
   };
 
   return loggedin ? (
-    <Redirect to="/" />
+    <Navigate to="/" replace />
   ) : (
-    <Paper elevation={3} className={classes.body}>
-      <Grid container direction="column" spacing={4} alignItems="center">
-        <Grid item>
-          <Typography variant="h3" component="h2">
-            Login
-          </Typography>
-        </Grid>
-        <Grid item>
-          <EmailInput
-            label="Email"
-            value={loginDetails.email}
-            onChange={(event) => handleInput("email", event.target.value)}
-            inputErrorHandler={inputErrorHandler}
-            handleInputError={handleInputError}
-            className={classes.inputBox}
-          />
-        </Grid>
-        <Grid item>
-          <PasswordInput
-            label="Password"
-            value={loginDetails.password}
-            onChange={(event) => handleInput("password", event.target.value)}
-            className={classes.inputBox}
-          />
-        </Grid>
-        <Grid item>
-          <Button
-            variant="contained"
-            color="primary"
+    <div className="flex min-height-screen items-center justify-center bg-slate-50 px-4 py-10">
+      <div className="w-full max-w-md">
+        <div className="mb-6 flex items-center justify-center gap-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-soft text-primary">
+            <span className="text-lg font-bold">F</span>
+          </div>
+          <div className="text-center">
+            <h1 className="text-xl font-semibold text-slate-900">
+              FCM Platform
+            </h1>
+            <p className="text-sm text-slate-500">
+              Sign in to continue
+            </p>
+          </div>
+        </div>
+
+        <div className="card p-6 shadow-sm">
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">Login</h2>
+          <div className="mb-4">
+            <EmailInput
+              label="Email"
+              value={loginDetails.email}
+              onChange={(event) => handleInput("email", event.target.value)}
+              inputErrorHandler={inputErrorHandler}
+              handleInputError={handleInputError}
+              className="w-full"
+            />
+          </div>
+          <div className="mb-6">
+            <PasswordInput
+              label="Password"
+              value={loginDetails.password}
+              onChange={(event) => handleInput("password", event.target.value)}
+              className="w-full"
+            />
+          </div>
+          <button
+            type="button"
             onClick={() => handleLogin()}
-            className={classes.submitButton}
+            className="btn-primary w-full"
           >
             Login
-          </Button>
-        </Grid>
-      </Grid>
-    </Paper>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

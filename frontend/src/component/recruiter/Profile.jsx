@@ -5,12 +5,12 @@ import {
   Typography,
   Modal,
   Paper,
-  makeStyles,
   TextField,
-} from "@material-ui/core";
+} from "@mui/material";
+import { makeStyles } from "@mui/styles";
 import axios from "axios";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/material.css";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
 import { SetPopupContext } from "../../App";
 
@@ -81,7 +81,7 @@ const Profile = (props) => {
     if (phone !== "") {
       updatedDetails = {
         ...profileDetails,
-        contactNumber: `+${phone}`,
+        contactNumber: phone,
       };
     } else {
       updatedDetails = {
@@ -177,10 +177,9 @@ const Profile = (props) => {
                 }}
               >
                 <PhoneInput
-                  country={"in"}
+                  defaultCountry="IN"
                   value={phone}
-                  onChange={(phone) => setPhone(phone)}
-                  style={{ width: "auto" }}
+                  onChange={(value) => setPhone(value || "")}
                 />
               </Grid>
             </Grid>
