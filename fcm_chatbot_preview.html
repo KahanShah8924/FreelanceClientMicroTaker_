@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCM Platform - Smart Support & Notifications</title>
+    <style>
+        :root {
+            --primary: #E23744; /* Zomato-like red */
+            --primary-light: #fcebeb;
+            --text-dark: #1c1c1c;
+            --text-muted: #666;
+            --bg-light: #f8f9fa;
+            --white: #ffffff;
+            --border-color: #eaeaea;
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.15);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ----- Navbar & Notifications ----- */
+        header {
+            background: var(--white);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+        }
+
+        .notifications-wrapper {
+            position: relative;
+        }
+
+        .notification-bell {
+            font-size: 1.5rem;
+            cursor: pointer;
+            position: relative;
+            padding: 5px;
+            user-select: none;
+            transition: transform 0.2s;
+        }
+        .notification-bell:hover {
+            transform: scale(1.1);
+        }
+
+        .badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--primary);
+            color: var(--white);
+            font-size: 0.7rem;
+            font-weight: bold;
+            height: 18px;
+            min-width: 18px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+            transform: translate(25%, -25%);
+            border: 2px solid var(--white);
+            display: none; /* hidden when 0 */
+        }
+
+        .notification-panel {
+            position: absolute;
+            top: 130%;
+            right: 0;
+            width: 320px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: fadeIn 0.2s ease-out;
+            border: 1px solid var(--border-color);
+        }
+        .notification-panel.active {
+            display: flex;
+        }
+
+        .panel-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafafa;
+        }
+        .panel-header h4 {
+            margin: 0;
+            font-size: 1rem;
+        }
+        .panel-header span {
+            font-size: 0.8rem;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .panel-body {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .notification-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .notification-item:hover {
+            background: var(--bg-light);
+        }
+        .notification-item.unread {
+            background: var(--primary-light);
+        }
+        .notif-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .notif-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .empty-notif {
+            padding: 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* ----- Main Content (for simulation) ----- */
+        main {
+            padding: 40px;
+            flex: 1;
+        }
+        .test-controls {
+            margin-top: 20px;
+            background: var(--white);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            max-width: 500px;
+        }
+        button.btn {
+            background: var(--text-dark);
+            color: var(--white);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-right: 10px;
+            transition: var(--transition);
+        }
+        button.btn:hover {
+            background: var(--primary);
+        }
+
+        /* ----- Chatbot UI ----- */
+        .chat-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .chat-toggle:hover {
+            transform: scale(1.05);
+        }
+
+        .chat-container {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 360px;
+            height: 500px;
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            z-index: 99;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition);
+        }
+        .chat-container.active {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .chat-header {
+            background: var(--primary);
+            color: var(--white);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-header h4 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chat-header h4::before {
+            content: '';
+            display: block;
+            width: 8px;
+            height: 8px;
+            background: #4caf50; /* Online status */
+            border-radius: 50%;
+        }
+        .close-btn {
+            cursor: pointer;
+            font-size: 1.2rem;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .close-btn:hover {
+            opacity: 1;
+        }
+
+        .chat-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: var(--bg-light);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-msg {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+            animation: slideUp 0.3s ease-out forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .msg-bot {
+            align-self: flex-start;
+            background: var(--white);
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+            border-bottom-left-radius: 4px;
+        }
+        .msg-user {
+            align-self: flex-end;
+            background: var(--primary);
+            color: var(--white);
+            border-bottom-right-radius: 4px;
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            background: var(--white);
+            padding: 12px 14px;
+            border-radius: 14px;
+            border-bottom-left-radius: 4px;
+            border: 1px solid var(--border-color);
+            gap: 4px;
+            align-items: center;
+        }
+        .typing-indicator span {
+            width: 6px;
+            height: 6px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+        .chat-input-area {
+            background: var(--white);
+            border-top: 1px solid var(--border-color);
+            padding: 10px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .quick-replies {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            scrollbar-width: none;
+        }
+        .quick-replies::-webkit-scrollbar {
+            display: none;
+        }
+        .quick-btn {
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            white-space: nowrap;
+            color: var(--primary);
+            transition: var(--transition);
+        }
+        .quick-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 8px;
+        }
+        #chatInput {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            outline: none;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+        #chatInput:focus {
+            border-color: var(--primary);
+        }
+        #chatSend {
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: var(--transition);
+        }
+        #chatSend:hover {
+            background: #c32d3a;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Mobile specific styling */
+        @media (max-width: 480px) {
+            .chat-container {
+                width: 100vw;
+                height: 100vh;
+                bottom: 0;
+                right: 0;
+                border-radius: 0;
+            }
+            .chat-toggle {
+                bottom: 20px;
+                right: 20px;
+            }
+            .notification-panel {
+                width: 300px;
+                right: -10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header / Nav -->
+    <header>
+        <div class="logo">FCM Platform</div>
+        <div class="notifications-wrapper">
+            <div class="notification-bell" id="notificationBell">
+                🔔 <span class="badge" id="notificationBadge"></span>
+            </div>
+            <div class="notification-panel" id="notificationPanel">
+                <div class="panel-header">
+                    <h4>Notifications</h4>
+                    <span id="markAllRead">Mark all read</span>
+                </div>
+                <div class="panel-body" id="notificationList">
+                    <!-- Dynamic notifications -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <h1>Dashboard Output Viewer</h1>
+        <p>This page simulates the front-end layout for the Chatbot and Notifications features.</p>
+
+        <div class="test-controls">
+            <h3>Simulation Tools</h3>
+            <p style="font-size: 0.9rem; color: #666; margin-bottom: 15px;">Click to simulate incoming real-time events without page reload.</p>
+            <button class="btn" id="simJobNotif">Simulate New Job</button>
+            <button class="btn" id="simAppNotif">Simulate Fast Approval</button>
+            <button class="btn" id="resetChat" style="background:var(--primary); margin-top:10px;">Reset Chat & Notifications</button>
+        </div>
+    </main>
+
+    <!-- Chatbot Toggle & Window -->
+    <div class="chat-toggle" id="chatToggle">💬</div>
+    
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-header">
+            <h4>Support Assistant</h4>
+            <span class="close-btn" id="chatClose">✖</span>
+        </div>
+        <div class="chat-body" id="chatBody">
+            <!-- Messages inserted via JS -->
+            <div class="typing-indicator" id="typingIndicator">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <div class="quick-replies" id="quickReplies">
+                <!-- Buttons inserted via JS -->
+            </div>
+            <div class="input-wrapper">
+                <input type="text" id="chatInput" placeholder="Type your message..." autocomplete="off">
+                <button id="chatSend">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // NOTIFICATION SYSTEM
+        // ==========================================
+        const notifyKeys = { storage: 'fcm_notifications' };
+        let notifications = JSON.parse(localStorage.getItem(notifyKeys.storage)) || [];
+
+        const uiElements = {
+            bell: document.getElementById('notificationBell'),
+            badge: document.getElementById('notificationBadge'),
+            panel: document.getElementById('notificationPanel'),
+            list: document.getElementById('notificationList'),
+            markRead: document.getElementById('markAllRead')
+        };
+
+        // Render Notifications to UI
+        function renderNotifications() {
+            uiElements.list.innerHTML = '';
+            const unreadCount = notifications.filter(n => !n.read).length;
+
+            if (unreadCount > 0) {
+                uiElements.badge.textContent = unreadCount;
+                uiElements.badge.style.display = 'flex';
+            } else {
+                uiElements.badge.style.display = 'none';
+            }
+
+            if (notifications.length === 0) {
+                uiElements.list.innerHTML = '<div class="empty-notif">No new notifications</div>';
+                return;
+            }
+
+            // Sort newest first
+            const sorted = [...notifications].sort((a, b) => b.timestamp - a.timestamp);
+
+            sorted.forEach(notif => {
+                const item = document.createElement('div');
+                item.className = `notification-item ${notif.read ? '' : 'unread'}`;
+                item.innerHTML = `
+                    <div class="notif-title">${notif.text}</div>
+                    <div class="notif-time">${new Date(notif.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                `;
+                item.onclick = () => {
+                    markAsRead(notif.id);
+                };
+                uiElements.list.appendChild(item);
+            });
+        }
+
+        function saveNotifications() {
+            localStorage.setItem(notifyKeys.storage, JSON.stringify(notifications));
+            renderNotifications();
+        }
+
+        function addNotification(text) {
+            // Prevent duplicate identical notifications within 1 minute
+            const isDuplicate = notifications.some(n => n.text === text && (Date.now() - n.timestamp) < 60000);
+            if (isDuplicate) return;
+
+            notifications.push({
+                id: Date.now().toString(),
+                text: text,
+                read: false,
+                timestamp: Date.now()
+            });
+            saveNotifications();
+        }
+
+        function markAsRead(id) {
+            const notif = notifications.find(n => n.id === id);
+            if (notif && !notif.read) {
+                notif.read = true;
+                saveNotifications();
+            }
+        }
+
+        uiElements.markRead.addEventListener('click', () => {
+            notifications.forEach(n => n.read = true);
+            saveNotifications();
+        });
+
+        // Toggle Panel
+        uiElements.bell.addEventListener('click', (e) => {
+            e.stopPropagation();
+            uiElements.panel.classList.toggle('active');
+        });
+
+        // Close panel when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!uiElements.bell.contains(e.target) && !uiElements.panel.contains(e.target)) {
+                uiElements.panel.classList.remove('active');
+            }
+        });
+
+        // Simulation Triggers
+        document.getElementById('simJobNotif').addEventListener('click', () => {
+            addNotification("New Task Posted: Need React Developer");
+        });
+        document.getElementById('simAppNotif').addEventListener('click', () => {
+            addNotification("Application Approved: UI Design Project");
+        });
+
+
+        // ==========================================
+        // CHATBOT SYSTEM
+        // ==========================================
+        const chatKeys = { storage: 'fcm_chat_history', userRole: 'fcm_chat_role' };
+        let chatHistory = JSON.parse(localStorage.getItem(chatKeys.storage)) || [];
+        
+        const chatUI = {
+            toggle: document.getElementById('chatToggle'),
+            container: document.getElementById('chatContainer'),
+            close: document.getElementById('chatClose'),
+            body: document.getElementById('chatBody'),
+            input: document.getElementById('chatInput'),
+            sendBtn: document.getElementById('chatSend'),
+            quickReplies: document.getElementById('quickReplies'),
+            typing: document.getElementById('typingIndicator')
+        };
+
+        // Open / Close Chat
+        chatUI.toggle.addEventListener('click', () => {
+            chatUI.container.classList.add('active');
+            scrollToBottom();
+        });
+        chatUI.close.addEventListener('click', () => {
+            chatUI.container.classList.remove('active');
+        });
+
+        // Render Initial Chat
+        function initChat() {
+            chatUI.body.innerHTML = ''; // clear
+            chatUI.body.appendChild(chatUI.typing); // keep typing indicator in DOM
+
+            if (chatHistory.length === 0) {
+                // Initial greeting
+                setTimeout(() => {
+                    addMessage("bot", "Hello! Welcome to FCM Support. Are you a Freelancer or a Client?");
+                    setQuickReplies(["I'm a Freelancer", "I'm a Client"]);
+                }, 500);
+            } else {
+                // Restore up to last 5 messages as requested
+                const recentMessages = chatHistory.slice(-5);
+                recentMessages.forEach(msg => appendMessageUI(msg.sender, msg.text, false));
+                updateQuickReplies();
+            }
+            scrollToBottom();
+        }
+
+        // Logic to update quick replies based on context
+        function updateQuickReplies() {
+            const role = localStorage.getItem(chatKeys.userRole);
+            if (!role) {
+                setQuickReplies(["I'm a Freelancer", "I'm a Client"]);
+            } else if (role === 'freelancer') {
+                setQuickReplies(["Find Tasks", "Track Status", "Help"]);
+            } else {
+                setQuickReplies(["Post a Job", "Pricing", "Help"]);
+            }
+        }
+
+        function setQuickReplies(replies) {
+            chatUI.quickReplies.innerHTML = '';
+            replies.forEach(text => {
+                const btn = document.createElement('button');
+                btn.className = 'quick-btn';
+                btn.textContent = text;
+                btn.onclick = () => handleUserMessage(text);
+                chatUI.quickReplies.appendChild(btn);
+            });
+        }
+
+        function appendMessageUI(sender, text, scroll = true) {
+            const el = document.createElement('div');
+            el.className = `chat-msg msg-${sender}`;
+            el.textContent = text;
+            chatUI.body.insertBefore(el, chatUI.typing);
+            if (scroll) scrollToBottom();
+        }
+
+        function addMessage(sender, text) {
+            // Manage Storage
+            chatHistory.push({ sender, text, timestamp: Date.now() });
+            // keep last 50 logically, but specs said "store last 5 messages" in localStorage
+            // We will truncate history array if we only strictly want 5
+            if (chatHistory.length > 5) chatHistory = chatHistory.slice(-5);
+            localStorage.setItem(chatKeys.storage, JSON.stringify(chatHistory));
+            
+            appendMessageUI(sender, text);
+        }
+
+        function scrollToBottom() {
+            chatUI.body.scrollTop = chatUI.body.scrollHeight;
+        }
+
+        function showTyping() {
+            chatUI.typing.style.display = 'flex';
+            scrollToBottom();
+        }
+        function hideTyping() {
+            chatUI.typing.style.display = 'none';
+        }
+
+        // --- Intent Engine ---
+        function generateBotResponse(userStr) {
+            const input = userStr.toLowerCase();
+            let response = "I'm not exactly sure what you mean. Can you try rephrasing, or ask for 'Help'?";
+
+            // User Role Identification
+            if (input.includes("freelancer") && !localStorage.getItem(chatKeys.userRole)) {
+                localStorage.setItem(chatKeys.userRole, "freelancer");
+                response = "Great! As a freelancer, I can help you find tasks, track your application status, or explore trending jobs. What do you need?";
+                updateQuickReplies();
+                return response;
+            }
+            if (input.includes("client") && !localStorage.getItem(chatKeys.userRole)) {
+                localStorage.setItem(chatKeys.userRole, "client");
+                response = "Awesome! As a client, I can help you post a job, understand pricing, or give tips to attract freelancers. How can I assist today?";
+                updateQuickReplies();
+                return response;
+            }
+
+            // Freelancer Intents
+            if (input.includes("find task") || input.includes("suggest") || input.includes("trending")) {
+                response = "Based on current trends, Web Development and UI Design tasks are very popular! You can go to the 'Find Jobs' tab to apply. Want me to tell you how to apply?";
+            }
+            else if (input.includes("apply")) {
+                response = "To apply, click on the task you like and hit the 'Apply Now' button. Make sure your profile has your latest portfolio attached!";
+            }
+            else if (input.includes("status") || input.includes("track")) {
+                response = "You can track your application status in the 'My Dashboard' section. You'll see if it's Pending, Accepted, or Rejected.";
+            }
+            // Client Intents
+            else if (input.includes("post") || input.includes("job")) {
+                response = "Posting a job is simple! Click 'Post a Job' in your navigation menu, fill in the requirements, and set your budget.";
+            }
+            else if (input.includes("pricing") || input.includes("cost")) {
+                response = "Our platform is free to post! We only take a small commission when you successfully hire and pay a freelancer.";
+            }
+            else if (input.includes("tips") || input.includes("attract")) {
+                response = "To attract top freelancers, ensure your job title is clear, provide a detailed description, and set a competitive budget.";
+            }
+            // General FAQs
+            else if (input.includes("help") || input.includes("faq")) {
+                response = "Here are a few things you can ask me: 'How to apply', 'Track status', 'Post a job', or 'Payment issues'.";
+            }
+            else if (input.includes("payment")) {
+                response = "Payments are securely held in escrow until the microtask is marked as completed and approved by the client.";
+            }
+            else if (input.includes("login") || input.includes("password")) {
+                response = "If you're having login issues, please try clicking 'Forgot Password' on the login screen to reset your credentials.";
+            }
+            // Greetings
+            else if (input.includes("hi") || input.includes("hello")) {
+                response = "Hello! How can I help you today?";
+            }
+
+            return response;
+        }
+
+        // Send cycle
+        function handleUserMessage(text) {
+            const rawText = text.trim();
+            if (!rawText) return;
+
+            // Clear input
+            chatUI.input.value = '';
+            
+            // Add User message
+            addMessage('user', rawText);
+
+            // Bot response process
+            showTyping();
+            
+            // Simulate network delay
+            setTimeout(() => {
+                hideTyping();
+                const botResponse = generateBotResponse(rawText);
+                addMessage('bot', botResponse);
+            }, 800 + Math.random() * 700);
+        }
+
+        // Event Listeners
+        chatUI.sendBtn.addEventListener('click', () => handleUserMessage(chatUI.input.value));
+        chatUI.input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleUserMessage(chatUI.input.value);
+        });
+
+        document.getElementById('resetChat').addEventListener('click', () => {
+            localStorage.removeItem(chatKeys.storage);
+            localStorage.removeItem(chatKeys.userRole);
+            localStorage.removeItem(notifyKeys.storage);
+            chatHistory = [];
+            notifications = [];
+            renderNotifications();
+            initChat();
+            alert("App data reset!");
+        });
+
+
+        // INITIALIZATION
+        renderNotifications();
+        initChat();
+
+    </script>
+</body>
+</html>

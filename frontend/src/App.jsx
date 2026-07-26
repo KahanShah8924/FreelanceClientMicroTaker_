@@ -14,6 +14,7 @@ import JobApplications from "./component/recruiter/JobApplications";
 import AcceptedApplicants from "./component/recruiter/AcceptedApplicants";
 import RecruiterProfile from "./component/recruiter/Profile";
 import MessagePopup from "./lib/MessagePopup";
+import Chatbot from "./component/Chatbot";
 import isAuth, { userType } from "./lib/isAuth";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 
@@ -64,6 +65,7 @@ function App() {
             </div>
           </main>
         </div>
+        <Chatbot />
         <MessagePopup
           open={popup.open}
           setOpen={(status) =>

@@ -23,13 +23,19 @@ const PasswordInput = (props) => {
 
   return (
     <>
-      <FormControl variant="outlined" error={props.error ? props.error : null}>
+      <FormControl
+        variant="outlined"
+        error={props.error ? props.error : null}
+        className={props.className}
+        fullWidth
+      >
         <InputLabel htmlFor="outlined-adornment-password">
           {props.label}
         </InputLabel>
         <OutlinedInput
           id="outlined-adornment-password"
           type={showPassword ? "text" : "password"}
+          label={props.label} 
           endAdornment={
             <InputAdornment position="end">
               <IconButton
@@ -43,8 +49,6 @@ const PasswordInput = (props) => {
           }
           value={props.value}
           onChange={(event) => props.onChange(event)}
-          labelWidth={props.labelWidth ? props.labelWidth : 70}
-          className={props.className}
           onBlur={props.onBlur ? props.onBlur : null}
         />
         {props.helperText ? (

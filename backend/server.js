@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const passportConfig = require("./lib/passportConfig");
 const cors = require("cors");
 const fs = require("fs");
+require("dotenv").config();
 
 // MongoDB
 mongoose
@@ -41,6 +42,7 @@ app.use(passportConfig.initialize());
 // Routing
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/api", require("./routes/apiRoutes"));
+app.use("/api", require("./routes/chatbotRoutes"));
 app.use("/upload", require("./routes/uploadRoutes"));
 app.use("/host", require("./routes/downloadRoutes"));
 

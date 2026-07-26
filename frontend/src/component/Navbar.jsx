@@ -1,6 +1,7 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Bell, User } from "lucide-react";
+import NotificationPanel from './NotificationPanel';
 
 import isAuth, { userType } from "../lib/isAuth";
 
@@ -82,12 +83,7 @@ const Navbar = () => {
         <div className="flex items-center gap-3">
           {authed ? (
             <>
-              <button
-                type="button"
-                className="relative inline-flex items-center justify-center rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              >
-                <Bell className="h-5 w-5" />
-              </button>
+              <NotificationPanel />
               <button
                 type="button"
                 onClick={() => handleClick("/profile")}

@@ -12,6 +12,28 @@ import isAuth from "../lib/isAuth";
 const Login = (props) => {
   const setPopup = useContext(SetPopupContext);
 
+  const notifyKey = "fcm_react_notifications";
+  const addNotification = (text) => {
+    if (typeof text !== "string" || !text.trim()) return;
+    const now = Date.now();
+    const stored = JSON.parse(localStorage.getItem(notifyKey)) || [];
+
+    // Avoid duplicates within 1 minute (matches NotificationPanel logic).
+    const isDuplicate = stored.some(
+      (n) => n.text === text && now - n.timestamp < 60000
+    );
+    if (!isDuplicate) {
+      const next = [
+        { id: now.toString(), text, read: false, timestamp: now },
+        ...stored,
+      ];
+      localStorage.setItem(notifyKey, JSON.stringify(next));
+    }
+
+    // If the panel is mounted, notify it live too.
+    window.dispatchEvent(new CustomEvent("addNotification", { detail: text }));
+  };
+
   const [loggedin, setLoggedin] = useState(isAuth());
 
   const [loginDetails, setLoginDetails] = useState({
@@ -48,6 +70,16 @@ const Login = (props) => {
   };
 
   const handleLogin = () => {
+    if (!loginDetails.email.trim() || !loginDetails.password.trim()) {
+      addNotification("Please enter both email and password.");
+      setPopup({
+        open: true,
+        severity: "error",
+        message: "Incorrect Input",
+      });
+      return;
+    }
+
     const verified = !Object.keys(inputErrorHandler).some((obj) => {
       return inputErrorHandler[obj].error;
     });
@@ -63,13 +95,20 @@ const Login = (props) => {
             severity: "success",
             message: "Logged in successfully",
           });
+          addNotification("Logged in successfully");
           console.log(response);
         })
         .catch((err) => {
+          const msg =
+            err?.response?.data?.message ||
+            "Login failed. Please try again.";
+          addNotification(
+            err?.response?.data?.message || "Login failed"
+          );
           setPopup({
             open: true,
             severity: "error",
-            message: err.response.data.message,
+            message: msg,
           });
           console.log(err.response);
         });
@@ -79,6 +118,7 @@ const Login = (props) => {
         severity: "error",
         message: "Incorrect Input",
       });
+      addNotification("Incorrect Input");
     }
   };
 
@@ -111,6 +151,7 @@ const Login = (props) => {
               inputErrorHandler={inputErrorHandler}
               handleInputError={handleInputError}
               className="w-full"
+              required={true}
             />
           </div>
           <div className="mb-6">
@@ -119,6 +160,15 @@ const Login = (props) => {
               value={loginDetails.password}
               onChange={(event) => handleInput("password", event.target.value)}
               className="w-full"
+              error={inputErrorHandler.password.error}
+              helperText={inputErrorHandler.password.message}
+              onBlur={(event) => {
+                if (event.target.value === "") {
+                  handleInputError("password", true, "Password is required");
+                } else {
+                  handleInputError("password", false, "");
+                }
+              }}
             />
           </div>
           <button
